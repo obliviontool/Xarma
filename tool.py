@@ -1,12 +1,31 @@
 import colorama as ca
 import time as ti
 import os
+import requests
+import base64
+import json
+import sys
 
 # Initialize colorama
 ca.init()
 
-# OS definitions
-os.system("title XARMA ^| BETA")
+# Configuration
+CURRENT_VERSION = "1"  # Will be overwritten by local version.txt
+GITHUB_REPO = "obliviontool/Xarma"  # Your GitHub repo
+VERSION_FILE = "version.txt"  # Version file name
+MAIN_SCRIPT = "tool.py"  # Main script to update
+
+# Set working directory to script's location
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+# Colors
+YELLOW = ca.Fore.YELLOW
+GREEN = ca.Fore.GREEN
+RED = ca.Fore.RED
+PURPLE = ca.Fore.MAGENTA
+BLUE = ca.Fore.BLUE
+WHITE = ca.Fore.WHITE
+CYAN = ca.Fore.CYAN
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -128,49 +147,116 @@ def holographic_intro():
     ti.sleep(1.5)
     clear()
 
-# Colors
-YELLOW = ca.Fore.YELLOW
-GREEN = ca.Fore.GREEN
-RED = ca.Fore.RED
-PURPLE = ca.Fore.MAGENTA
-BLUE = ca.Fore.BLUE
-WHITE = ca.Fore.WHITE
-CYAN = ca.Fore.CYAN
+def read_local_version():
+    try:
+        if os.path.exists(VERSION_FILE):
+            with open(VERSION_FILE, 'r') as f:
+                return f.read().strip()
+        return None
+    except Exception as e:
+        print(rf"{RED}[!] Error reading local version: {str(e)}")
+        return None
+
+def get_github_version():
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{VERSION_FILE}"
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            content = json.loads(response.text)
+            if 'content' in content:
+                version_content = base64.b64decode(content['content']).decode('utf-8')
+                return version_content.strip()
+        return None
+    except Exception as e:
+        print(rf"{RED}[!] Error checking GitHub version: {str(e)}")
+        return None
+
+def download_file_from_github(filename):
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{filename}"
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            content = json.loads(response.text)
+            if 'content' in content:
+                file_content = base64.b64decode(content['content']).decode('utf-8')
+                with open(filename, 'w') as f:
+                    f.write(file_content)
+                return True
+        return False
+    except Exception as e:
+        print(rf"{RED}[!] Error downloading {filename}: {str(e)}")
+        return False
 
 def AutoUpdate():
     print(rf"{YELLOW}[-] Checking for updates, please hold...")
     ti.sleep(1)
     clear()
     
-    # Here you would normally check for updates
-    # For this example, we'll set it to False to show updates are available
-    noupdates = False  # Change this based on your actual update check
+    # Read local version first
+    local_version = read_local_version()
+    if local_version:
+        global CURRENT_VERSION
+        CURRENT_VERSION = local_version
     
-    if noupdates:
+    github_version = get_github_version()
+    
+    if github_version is None:
+        print(rf"{RED}[!] Failed to check for updates")
+        ti.sleep(2)
+        clear()
+        return
+    
+    if github_version == CURRENT_VERSION:
         NoUpdatesFound()
     else:
-        UpdatesFound()
+        UpdatesFound(github_version)
 
 def NoUpdatesFound():
     print(rf"{YELLOW}[-] Update check complete, no updates available.")
-    ti.sleep(1)
+    print(rf"{CYAN}[*] Current version: {CURRENT_VERSION}")
+    ti.sleep(2)
     clear()
 
-def UpdatesFound():
-    print(rf"{GREEN}[+] Update check complete, updates available.")
+def UpdatesFound(latest_version):
+    print(rf"{GREEN}[+] Update found! New version: {latest_version}")
+    print(rf"{CYAN}[*] Current version: {CURRENT_VERSION}")
+    ti.sleep(2)
+    clear()
+    
+    print(rf"{PURPLE}[-] Downloading updates...")
+    ti.sleep(1)
+    
+    # Download version file
+    if download_file_from_github(VERSION_FILE):
+        print(rf"{GREEN}[+] Updated version.txt successfully")
+    else:
+        print(rf"{RED}[!] Failed to update version.txt")
+    
+    # Download main script
+    if download_file_from_github(MAIN_SCRIPT):
+        print(rf"{GREEN}[+] Updated {MAIN_SCRIPT} successfully")
+    else:
+        print(rf"{RED}[!] Failed to update {MAIN_SCRIPT}")
+    
     ti.sleep(1)
     clear()
-    print(rf"{PURPLE}[-] Downloading updates, please hold...")
-    ti.sleep(1)
-    clear()
-    print(rf"{BLUE}[+] Updates downloaded successfully.")
-    ti.sleep(1)
-    clear()
-    print(rf"{GREEN}[+] Restart the tool to apply updates...")
-    ti.sleep(1)
+    
+    print(rf"{BLUE}[+] Update process complete!")
+    print(rf"{GREEN}[+] Please restart the tool to apply updates")
+    ti.sleep(3)
     clear()
 
-# Main execution
 if __name__ == "__main__":
-    holographic_intro()  # Play the enhanced intro animation
-    AutoUpdate()  # Run the update check
+    try:
+        holographic_intro()
+        AutoUpdate()
+        
+        # After update check, continue with your main program
+        print(rf"{CYAN}[*] Press any key to continue...")
+        input()
+        
+    except KeyboardInterrupt:
+        print(rf"{RED}[!] Operation cancelled by user")
+        sys.exit(0)
