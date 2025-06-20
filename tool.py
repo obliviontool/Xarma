@@ -15,7 +15,7 @@ from selenium import webdriver
 
 ca.init()
 
-CURRENT_VERSION = "2"
+CURRENT_VERSION = "3"
 GITHUB_REPO = "obliviontool/Xarma"
 VERSION_FILE = "version.txt"
 MAIN_SCRIPT = "tool.py"
