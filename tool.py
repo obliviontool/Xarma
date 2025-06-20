@@ -30,6 +30,34 @@ BLUE = ca.Fore.BLUE
 WHITE = ca.Fore.WHITE
 CYAN = ca.Fore.CYAN
 
+def rerun():
+    try:
+        import sys
+        import os
+        import subprocess
+        
+        try:
+            import fcntl
+            maxfd = os.sysconf("SC_OPEN_MAX")
+            for fd in range(3, maxfd):
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+        except (ImportError, AttributeError):
+            pass  
+    
+        if os.name == 'nt': 
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
+        else:  
+            os.execv(sys.executable, ['python'] + sys.argv)
+            
+    except Exception as e:
+        print(f"Failed to restart: {str(e)}")
+        sys.exit(1)
+
+
 class XarmaTool:
     def __init__(self):
         self.modules = {
@@ -793,6 +821,8 @@ if __name__ == '__main__':
         print(f"{GREEN}Restart to apply updates")
         ti.sleep(3)
         self.clear()
+        rerun()
+
 
     def run(self):
         while True:
