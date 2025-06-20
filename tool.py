@@ -727,7 +727,7 @@ if __name__ == '__main__':
         ti.sleep(1.5)
         self.clear()
 
-      def read_local_version(self):
+    def read_local_version(self):
         try:
             if os.path.exists(VERSION_FILE):
                 with open(VERSION_FILE, 'r') as f:
@@ -766,7 +766,7 @@ if __name__ == '__main__':
             print(f"{RED}Error downloading {filename}: {str(e)}")
             return False
 
-    def AutoUpdate(self):
+def AutoUpdate(self):
         print(f"{YELLOW}Checking for updates...")
         ti.sleep(1)
         self.clear()
@@ -789,61 +789,60 @@ if __name__ == '__main__':
         else:
             self.UpdatesFound(github_version)
 
-    def NoUpdatesFound(self):
+def NoUpdatesFound(self):
         print(f"{YELLOW}No updates available")
         print(f"{CYAN}Current version: {CURRENT_VERSION}")
         ti.sleep(2)
         self.clear()
 
 def UpdatesFound(self, latest_version):
-    print(f"{GREEN}Update found! New version: {latest_version}")
-    print(f"{CYAN}Current version: {CURRENT_VERSION}")
-    updatenow = input("Would you like to update right now? (y/n): ")
-    if updatenow.lower() == 'y':  # Check lowercase to handle both 'y' and 'Y'
-        self.InstallUpdates(latest_version)
-    else:
-        print(f"{YELLOW}Update postponed. Please update soon!")
-        ti.sleep(2)
-    self.clear()
-
-def InstallUpdates(self, latest_version):
-    print(f"{PURPLE}Downloading updates...")
-    ti.sleep(1)
-    
-    success = True
-    
-    if not self.download_file_from_github(VERSION_FILE):
-        print(f"{RED}Failed to update version.txt")
-        success = False
-    else:
-        print(f"{GREEN}Updated version.txt")
-    
-    if not self.download_file_from_github(MAIN_SCRIPT):
-        print(f"{RED}Failed to update {MAIN_SCRIPT}")
-        success = False
-    else:
-        print(f"{GREEN}Updated {MAIN_SCRIPT}")
-    
-    ti.sleep(1)
-    self.clear()
-    
-    if success:
-        print(f"{BLUE}Update complete!")
-        print(f"{GREEN}Attempting to restart and apply changes...")
-        ti.sleep(2)
-        self.rerun()
-    else:
-        print(f"{RED}Update partially completed with errors")
-        print(f"{YELLOW}Some features may not work properly")
-        ti.sleep(3)
+        print(f"{GREEN}Update found! New version: {latest_version}")
+        print(f"{CYAN}Current version: {CURRENT_VERSION}")
+        updatenow = input("Would you like to update right now? (y/n): ")
+        if updatenow.lower() == 'y':
+            self.InstallUpdates(latest_version)
+        else:
+            print(f"{YELLOW}Update postponed. Please update soon!")
+            ti.sleep(2)
         self.clear()
 
+def InstallUpdates(self, latest_version):
+        print(f"{PURPLE}Downloading updates...")
+        ti.sleep(1)
+        
+        success = True
+        
+        if not self.download_file_from_github(VERSION_FILE):
+            print(f"{RED}Failed to update version.txt")
+            success = False
+        else:
+            print(f"{GREEN}Updated version.txt")
+        
+        if not self.download_file_from_github(MAIN_SCRIPT):
+            print(f"{RED}Failed to update {MAIN_SCRIPT}")
+            success = False
+        else:
+            print(f"{GREEN}Updated {MAIN_SCRIPT}")
+        
+        ti.sleep(1)
+        self.clear()
+        
+        if success:
+            print(f"{BLUE}Update complete!")
+            print(f"{GREEN}Attempting to restart and apply changes...")
+            ti.sleep(2)
+            rerun()
+        else:
+            print(f"{RED}Update partially completed with errors")
+            print(f"{YELLOW}Some features may not work properly")
+            ti.sleep(3)
+            self.clear()
 
 
-    def run(self):
+def run(self):
         while True:
             self.show_menu()
-            choice = input(f"{WHITE}Select option (1-20): ").strip()
+            choice = input(f"{RED}XARMA{GREEN}${WHITE} ").strip()
             if choice in self.modules:
                 if choice == "2":  # Token checker needs async handling
                     asyncio.run(self.token_checker())
