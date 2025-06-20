@@ -12,11 +12,11 @@ import re
 from itertools import cycle
 from selenium import webdriver
 from aiosonic import HTTPClient
-from asyncio_taskpool import SimpleTaskPool as TaskPool
+from aiosonic.task_pool import TaskPool
 
 ca.init()
 
-CURRENT_VERSION = "3"
+CURRENT_VERSION = "2"
 GITHUB_REPO = "obliviontool/Xarma"
 VERSION_FILE = "version.txt"
 MAIN_SCRIPT = "tool.py"
@@ -470,16 +470,16 @@ if __name__ == '__main__':
     def other_tools(self):
         print(f'''
 {RED}#SELFBOTS{WHITE}
-[1] Exeter NOT IMPLEMENTED
-[2] Nighty NOT IMPLEMENTED
+[1] Exeter
+[2] Nighty
 
 {RED}#Tools{WHITE}
-[3] AstraaHome NOT IMPLEMENTED
-[4] Crowntool NOT IMPLEMENTED
+[3] AstraaHome
+[4] Crowntool
 
 {RED}#Nukers{WHITE}
-[5] HazardNuker NOT IMPLEMENTED
-[6] AveryNuker NOT IMPLEMENTED
+[5] HazardNuker
+[6] AveryNuker
 ''')
         choice = input(f"{WHITE}Choice: ")
         
@@ -494,7 +494,7 @@ if __name__ == '__main__':
 }}
 ''')
             print(f"{YELLOW}Selfbot configuration created (functionality not implemented)")
-            input(f"{WHITE}Press Enter to continue...")https://discord.gg/REnwnB9kMTM3MjM0ODcyNDg2NDQ4MzMzOA.Gj_ffW.4BZ_MIsqo_4HE-zYq72te0dMhPWctOl1Tl9qNk
+            input(f"{WHITE}Press Enter to continue...")
             
         elif choice == "2":
             token = input(f"{WHITE}Token: ")
@@ -793,7 +793,7 @@ if __name__ == '__main__':
     def run(self):
         while True:
             self.show_menu()
-            choice = input(f"{RED}Xarma{GREEN}${WHITE} ").strip()
+            choice = input(f"{WHITE}Select option (1-20): ").strip()
             if choice in self.modules:
                 self.modules[choice]()
             else:
