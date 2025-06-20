@@ -7,12 +7,11 @@ import json
 import sys
 import threading
 import websocket
+import asyncio
+import aiohttp
 import random
 import re
-from itertools import cycle
 from selenium import webdriver
-from aiosonic import HTTPClient
-from aiosonic.task_pool import TaskPool
 
 ca.init()
 
@@ -188,38 +187,43 @@ class XarmaTool:
                         tokens.append(token)
         return tokens
 
-    async def check_token(self, token, client):
-        response = await client.get("https://discord.com/api/v9/users/@me/guild-events", headers={
+    async def check_token(self, token):
+        headers = {
             "Authorization": token,
             "Content-Type": "application/json"
-        })
-        
-        if response.status_code == 200:
-            self.TOKENS_VALID += 1
-            self.TOKENS_VALID_LIST.append(token)
-            print(f'{GREEN}[VALID] {token}')
-        elif response.status_code == 401:      
-            self.TOKENS_INVALID += 1
-            print(f'{RED}[INVALID] {token}')
-        elif response.status_code == 403:
-            self.TOKENS_LOCKED += 1
-            print(f'{YELLOW}[LOCKED] {token}')
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://discord.com/api/v9/users/@me/guild-events", headers=headers) as response:
+                    if response.status == 200:
+                        self.TOKENS_VALID += 1
+                        self.TOKENS_VALID_LIST.append(token)
+                        print(f'{GREEN}[VALID] {token}')
+                    elif response.status == 401:
+                        self.TOKENS_INVALID += 1
+                        print(f'{RED}[INVALID] {token}')
+                    elif response.status == 403:
+                        self.TOKENS_LOCKED += 1
+                        print(f'{YELLOW}[LOCKED] {token}')
+        except Exception as e:
+            print(f'{RED}[ERROR] {token} - {str(e)}')
 
     async def token_checker(self):
-        client = HTTPClient()
         try:
             with open('tokens.txt', 'r') as tokens:
                 filtered = self.filter_tokens(tokens)
                 self.TOKENS_LOADED = len(filtered)
-                async with TaskPool(10_000) as pool:
-                    for token in filtered:
-                        await pool.put(self.check_token(token, client))
+                
+                tasks = []
+                for token in filtered:
+                    tasks.append(self.check_token(token))
+                
+                await asyncio.gather(*tasks)
 
                 print(f"{WHITE}Tokens Loaded: {self.TOKENS_LOADED} | Valid: {self.TOKENS_VALID} | Locked: {self.TOKENS_LOCKED} | Invalid: {self.TOKENS_INVALID}")    
                 
-                with open(f'valid.txt', 'w') as handle:
+                with open('valid.txt', 'w') as handle:
                     handle.write('\n'.join(self.TOKENS_VALID_LIST))
-                    handle.close()
                     
                 input("Saved to valid.txt, click enter to exit.")
         except Exception as e:
@@ -795,7 +799,10 @@ if __name__ == '__main__':
             self.show_menu()
             choice = input(f"{WHITE}Select option (1-20): ").strip()
             if choice in self.modules:
-                self.modules[choice]()
+                if choice == "2":  # Token checker needs async handling
+                    asyncio.run(self.token_checker())
+                else:
+                    self.modules[choice]()
             else:
                 print(f"{RED}Invalid option!")
                 ti.sleep(1)
